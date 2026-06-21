@@ -7,7 +7,8 @@ const COMMANDS_DIR = path.join(import.meta.dirname, '..', 'commands');
 
 /**
  * Loads every command module from src/commands and attaches them
- * to client.commands. Each command file must export `data` and `execute`.
+ * to client.commands. Each command file must default-export a command
+ * built with `defineCommand` (see core/command.js).
  */
 export async function loadCommands(client) {
   const files = readdirSync(COMMANDS_DIR).filter((file) => file.endsWith('.js'));

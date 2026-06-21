@@ -1,18 +1,23 @@
 import { env } from './config/env.js';
-import { connectDatabase } from './services/database.js';
+import { connectDatabase, closeDatabase } from './services/database.js';
 import { createClient } from './core/client.js';
 import { loadCommands } from './core/commandLoader.js';
 import { loadEvents } from './core/eventLoader.js';
 import { registerCommands } from './core/registerCommands.js';
+import { registerProcessErrorHandlers } from './core/errorHandler.js';
 import { logger } from './shared/logger.js';
 
+let client;
+
 async function start() {
+  registerProcessErrorHandlers();
+
   logger.info('Starting emBobby...');
 
   await connectDatabase();
-  logger.info('Connected to PostgreSQL.');
+  logger.success('Connected to PostgreSQL.');
 
-  const client = createClient();
+  client = createClient();
 
   await loadCommands(client);
   await loadEvents(client);
@@ -21,13 +26,26 @@ async function start() {
   await client.login(env.discordToken);
 }
 
-process.on('unhandledRejection', (error) => {
-  logger.error('Unhandled promise rejection:', error);
-});
+/**
+ * Closes the Discord connection and database pool cleanly so the process
+ * doesn't get killed mid-operation by the host (e.g. on redeploy).
+ */
+async function shutdown(signal) {
+  logger.info(`Received ${signal}, shutting down gracefully...`);
 
-process.on('uncaughtException', (error) => {
-  logger.error('Uncaught exception:', error);
-});
+  try {
+    client?.destroy();
+    await closeDatabase();
+    logger.info('Shutdown complete.');
+    process.exit(0);
+  } catch (error) {
+    logger.error('Error during shutdown:', error);
+    process.exit(1);
+  }
+}
+
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT', () => shutdown('SIGINT'));
 
 start().catch((error) => {
   logger.error('Failed to start emBobby:', error);

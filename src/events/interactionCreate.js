@@ -1,3 +1,6 @@
+import { enforceCooldown } from '../core/cooldownManager.js';
+import { handleInteractionError } from '../core/errorHandler.js';
+import { PermissionError } from '../shared/errors.js';
 import { logger } from '../shared/logger.js';
 
 export default {
@@ -13,20 +16,20 @@ export default {
     }
 
     try {
+      if (command.permissions.length > 0 && interaction.inGuild()) {
+        const missing = interaction.memberPermissions?.missing(command.permissions) ?? [];
+        if (missing.length > 0) {
+          throw new PermissionError(
+            `You need the following permission(s) to use this command: ${missing.join(', ')}`
+          );
+        }
+      }
+
+      enforceCooldown(command.data.name, interaction.user.id, command.cooldownSeconds);
+
       await command.execute(interaction);
     } catch (error) {
-      logger.error(`Error executing command: ${interaction.commandName}`, error);
-
-      const errorResponse = {
-        content: 'Something went wrong while running this command.',
-        ephemeral: true,
-      };
-
-      if (interaction.replied || interaction.deferred) {
-        await interaction.followUp(errorResponse);
-      } else {
-        await interaction.reply(errorResponse);
-      }
+      await handleInteractionError(interaction, error);
     }
   },
 };
