@@ -1,5 +1,6 @@
 import { env } from './config/env.js';
 import { connectDatabase, closeDatabase } from './services/database.js';
+import { runMigrations } from './services/migrations.js';
 import { createClient } from './core/client.js';
 import { loadCommands } from './core/commandLoader.js';
 import { loadEvents } from './core/eventLoader.js';
@@ -16,6 +17,8 @@ async function start() {
 
   await connectDatabase();
   logger.success('Connected to PostgreSQL.');
+
+  await runMigrations();
 
   client = createClient();
 
