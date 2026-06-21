@@ -1,6 +1,6 @@
 import { ChannelType, PermissionFlagsBits } from 'discord.js';
 import { ROLES } from '../config/roles.js';
-import { CATEGORIES } from '../config/channels.js';
+import { CATEGORIES, VERIFY_CHANNEL_NAME } from '../config/channels.js';
 import {
   findRole,
   findCategory,
@@ -8,24 +8,10 @@ import {
   safeDeleteRole,
   safeDeleteChannel,
   createIfMissing,
-  resolvePermissionOverwrites,
-} from '../utils/index.js';
+} from '../utils/serverSetupUtils.js';
+import { resolveChannelPermissions, buildVisibilityPermissions, buildVerifyPermissions } from './permissionService.js';
 import { logger } from '../../../shared/logger.js';
 import { ValidationError } from '../../../shared/errors.js';
-
-/**
- * Maps the channel `type` strings used in config/channels.js to discord.js
- * ChannelType values. Voice/Stage are included so the config format is
- * already future-proof — only Text/Announcement/Forum are exercised by
- * this module per Phase 3 scope.
- */
-const CHANNEL_TYPE_MAP = {
-  GuildText: ChannelType.GuildText,
-  GuildAnnouncement: ChannelType.GuildAnnouncement,
-  GuildForum: ChannelType.GuildForum,
-  GuildVoice: ChannelType.GuildVoice,
-  GuildStageVoice: ChannelType.GuildStageVoice,
-};
 
 /**
  * Deletes every channel in the guild (categories, text, announcement,
@@ -144,9 +130,7 @@ export async function createCategories(guild) {
 
   for (const categoryDef of CATEGORIES) {
     try {
-      const overwrites = resolvePermissionOverwrites(guild, {
-        permissionKey: categoryDef.permissionKey,
-      });
+      const overwrites = buildVisibilityPermissions(guild, categoryDef.visibility);
 
       const { item: category, created: wasCreated } = await createIfMissing({
         find: () => findCategory(guild, categoryDef.name),
@@ -179,8 +163,11 @@ export async function createCategories(guild) {
 
 /**
  * Creates every channel from config/channels.js inside its category, in
- * order. Requires a categoryMap from createCategories(). A channel whose
- * category failed to create is skipped (logged) rather than crashing.
+ * order, then creates the standalone Verify channel. Requires a
+ * categoryMap from createCategories(). A channel whose category failed
+ * to create is skipped (logged) rather than crashing. `type` is passed
+ * straight through as a real ChannelType enum value — no string mapping
+ * layer to fall out of sync with discord.js.
  */
 export async function createChannels(guild, categoryMap) {
   let created = 0;
@@ -196,13 +183,15 @@ export async function createChannels(guild, categoryMap) {
 
     for (const channelDef of categoryDef.channels) {
       try {
-        const type = CHANNEL_TYPE_MAP[channelDef.type];
-        if (!type) {
-          throw new ValidationError(`Unsupported channel type "${channelDef.type}".`);
+        if (typeof channelDef.type !== 'number') {
+          throw new ValidationError(
+            `Channel "${channelDef.name}" has an invalid type — use a ChannelType enum value, e.g. ChannelType.GuildText.`
+          );
         }
 
-        const overwrites = resolvePermissionOverwrites(guild, {
-          permissionKey: channelDef.permissionKey ?? categoryDef.permissionKey,
+        const overwrites = resolveChannelPermissions(guild, {
+          visibility: categoryDef.visibility,
+          permissionKey: channelDef.permissionKey,
           readOnly: channelDef.readOnly,
         });
 
@@ -211,7 +200,7 @@ export async function createChannels(guild, categoryMap) {
           create: () =>
             guild.channels.create({
               name: channelDef.name,
-              type,
+              type: channelDef.type,
               parent: category.id,
               topic: channelDef.topic,
               permissionOverwrites: overwrites,
@@ -229,6 +218,34 @@ export async function createChannels(guild, categoryMap) {
         errors += 1;
         logger.error(`Failed to create channel "${channelDef.name}":`, error);
       }
+    }
+  }
+
+  // Standalone Verify channel — lives outside any category.
+  if (VERIFY_CHANNEL_NAME) {
+    try {
+      const overwrites = buildVerifyPermissions(guild);
+
+      const { created: wasCreated } = await createIfMissing({
+        find: () => findChannel(guild, VERIFY_CHANNEL_NAME, null),
+        create: () =>
+          guild.channels.create({
+            name: VERIFY_CHANNEL_NAME,
+            type: ChannelType.GuildText,
+            permissionOverwrites: overwrites,
+          }),
+      });
+
+      if (wasCreated) {
+        created += 1;
+        logger.success(`Created channel "${VERIFY_CHANNEL_NAME}".`);
+      } else {
+        skipped += 1;
+        logger.info(`Skipped channel "${VERIFY_CHANNEL_NAME}" (already exists).`);
+      }
+    } catch (error) {
+      errors += 1;
+      logger.error(`Failed to create channel "${VERIFY_CHANNEL_NAME}":`, error);
     }
   }
 

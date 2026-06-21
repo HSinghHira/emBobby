@@ -1,50 +1,130 @@
+import { ChannelType } from 'discord.js';
+
 /**
  * Category/channel definitions for the server setup module.
  *
- * EDIT THIS LIST with your actual server's structure — these are placeholders.
- *
- * Categories are created first, in array order, then each category's
- * channels are created inside it, also in array order.
+ * `type` uses the real discord.js ChannelType enum directly — no string
+ * translation layer — so any channel type discord.js supports (including
+ * Voice/Stage) just works without the config and service needing to agree
+ * on a parallel naming scheme.
  *
  * Category fields:
- *   name          - category name
- *   permissionKey - optional, key from permissions.js. Applied to the
- *                   category and inherited by its channels unless a
- *                   channel sets its own permissionKey.
- *   channels      - array of channel definitions (below)
+ *   name       - category name
+ *   visibility - 'public' (everyone can view) | 'verified' (Verified
+ *                Member + staff) | 'staff' (staff only). Channels inherit
+ *                this unless they set their own `permissionKey` override.
+ *   channels   - array of channel definitions (below), created in order
  *
  * Channel fields:
  *   name          - channel name
- *   type          - 'GuildText' | 'GuildAnnouncement' | 'GuildForum'
+ *   type          - ChannelType.GuildText | GuildAnnouncement | GuildForum
+ *                    | GuildVoice | GuildStageVoice
  *   topic         - optional channel topic
- *   permissionKey - optional, overrides the parent category's permissionKey
- *   readOnly      - optional boolean. When true, everyone who can VIEW the
- *                   channel is denied SendMessages / thread creation.
+ *   permissionKey - optional. One of 'he-only' | 'she-only' | 'they-only'
+ *                    (see config/permissions.js). Overrides the category's
+ *                    visibility entirely — the channel becomes visible only
+ *                    to that pronoun role, regardless of category tier.
+ *   readOnly      - optional boolean. Whoever can view the channel keeps
+ *                    view access but loses SendMessages / thread creation,
+ *                    except staff, who always retain write access.
  */
 export const CATEGORIES = [
+  // ── Information ──────────────────────────────────────────────
   {
-    name: 'Information',
-    permissionKey: 'verified',
+    name: '📂 Information',
+    visibility: 'verified',
     channels: [
-      { name: 'announcements', type: 'GuildAnnouncement', readOnly: true },
-      { name: 'rules', type: 'GuildText', readOnly: true },
+      {
+        name: '📢┋𝐀𝐧𝐧𝐨𝐮𝐧𝐜𝐞𝐦𝐞𝐧𝐭𝐬',
+        type: ChannelType.GuildAnnouncement,
+        topic: 'Official server announcements',
+        readOnly: true,
+      },
+      { name: '📜┋𝐑𝐮𝐥𝐞𝐬', type: ChannelType.GuildText, topic: 'Server rules', readOnly: true },
+      {
+        name: '🎭┋𝐒𝐞𝐥𝐟-𝐑𝐨𝐥𝐞𝐬',
+        type: ChannelType.GuildText,
+        topic: 'Pick your roles here',
+        readOnly: true,
+      },
+      {
+        name: '🏆┋𝐋𝐞𝐯𝐞𝐥𝐬',
+        type: ChannelType.GuildText,
+        topic: 'Levelling leaderboard',
+        readOnly: true,
+      },
     ],
   },
+
+  // ── Community ────────────────────────────────────────────────
   {
-    name: 'General',
-    permissionKey: 'verified',
+    name: '📂 Community',
+    visibility: 'verified',
     channels: [
-      { name: 'general', type: 'GuildText' },
-      { name: 'media', type: 'GuildText' },
-      { name: 'help-desk', type: 'GuildForum' },
+      { name: '💬┋𝐂𝐡𝐚𝐭-𝐓𝐢𝐦𝐞', type: ChannelType.GuildText, topic: 'General chat' },
+      { name: '📸┋𝐌𝐞𝐝𝐢𝐚', type: ChannelType.GuildText, topic: 'Share images & videos' },
+      {
+        name: '♀️┋𝐎𝐧𝐥𝐲-𝐒𝐇𝐄',
+        type: ChannelType.GuildText,
+        topic: 'SHE/HER only space',
+        permissionKey: 'she-only',
+      },
+      {
+        name: '♂️┋𝐎𝐧𝐥𝐲-𝐇𝐄',
+        type: ChannelType.GuildText,
+        topic: 'HE/HIM only space',
+        permissionKey: 'he-only',
+      },
+      {
+        name: '🌈┋𝐎𝐧𝐥𝐲-𝐓𝐇𝐄𝐘',
+        type: ChannelType.GuildText,
+        topic: 'THEY/THEM only space',
+        permissionKey: 'they-only',
+      },
     ],
   },
+
+  // ── Voice Channels ───────────────────────────────────────────
   {
-    name: 'Staff',
-    permissionKey: 'staff',
+    name: '📂 Voice Channels',
+    visibility: 'verified',
     channels: [
-      { name: 'staff-chat', type: 'GuildText' },
-      { name: 'mod-log', type: 'GuildText', readOnly: true },
+      { name: '⚙️┋𝐈𝐧𝐭𝐞𝐫𝐟𝐚𝐜𝐞', type: ChannelType.GuildText, readOnly: true },
+      { name: '🎙️┋𝐂𝐫𝐞𝐚𝐭𝐞 𝐕𝐂', type: ChannelType.GuildVoice },
+    ],
+  },
+
+  // ── Extras ───────────────────────────────────────────────────
+  {
+    name: '📂 Extras',
+    visibility: 'verified',
+    channels: [
+      {
+        name: '🎟️┋𝐇𝐞𝐥𝐩-𝐃𝐞𝐬𝐤',
+        type: ChannelType.GuildText,
+        topic: 'Open a support ticket',
+        readOnly: true,
+      },
+      { name: '🤖┋𝐁𝐨𝐭-𝐂𝐨𝐦𝐦𝐚𝐧𝐝𝐬', type: ChannelType.GuildText, topic: 'Use bot commands here' },
+      { name: '💡┋𝐒𝐮𝐠𝐠𝐞𝐬𝐭𝐢𝐨𝐧𝐬', type: ChannelType.GuildForum, topic: 'Suggest improvements' },
+      { name: '👀┋𝐂𝐫𝐞𝐞𝐩-𝐂𝐨𝐧𝐭𝐫𝐨𝐥', type: ChannelType.GuildForum, topic: 'Watch list' },
+    ],
+  },
+
+  // ── Staff ────────────────────────────────────────────────────
+  {
+    name: '📂 Staff',
+    visibility: 'staff',
+    channels: [
+      { name: '📑┋𝐋𝐨𝐠𝐬', type: ChannelType.GuildText, topic: 'Moderation logs' },
+      { name: '🗪┋𝐃𝐢𝐬𝐜𝐮𝐬𝐬𝐢𝐨𝐧', type: ChannelType.GuildForum, topic: 'Staff discussion' },
     ],
   },
 ];
+
+/**
+ * Standalone Verify channel — lives outside any category, hidden from
+ * @everyone, visible to New Member (so they can verify) and staff.
+ * Created/looked-up by createChannels() after the categorized channels.
+ */
+export const VERIFY_CHANNEL_NAME = '❓│𝐕𝐞𝐫𝐢𝐟𝐲';

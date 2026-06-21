@@ -6,5 +6,3 @@ export {
   safeDeleteChannel,
   createIfMissing,
 } from './serverSetupUtils.js';
-
-export { resolvePermissionOverwrites } from './resolvePermissionOverwrites.js';
