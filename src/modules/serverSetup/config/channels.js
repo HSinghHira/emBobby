@@ -89,7 +89,6 @@ export const CATEGORIES = [
     visibility: 'staff',
     channels: [
       { name: '🗪┋𝐃𝐢𝐬𝐜𝐮𝐬𝐬𝐢𝐨𝐧', type: ChannelType.GuildForum, topic: 'Staff discussion' },
-      { name: '📑┋𝐋𝐨𝐠𝐬', type: ChannelType.GuildText, topic: 'Moderation logs' },
     ],
   },
 ];

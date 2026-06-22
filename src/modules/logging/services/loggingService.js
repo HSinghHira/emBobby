@@ -144,6 +144,22 @@ export async function logAdminAction(guild, admin, action, details) {
 }
 
 /**
+ * Deletes any channel in the guild that matches the log channel name
+ * under the configured category. Used by both disable and reinstall.
+ *
+ * @param {Guild} guild
+ * @param {string} [exceptChannelId] - Optional channel ID to skip (already deleted).
+ */
+async function deleteLogChannelFromGuild(guild, exceptChannelId) {
+  for (const [, ch] of guild.channels.cache) {
+    if (ch.name === LOGGING_CONFIG.channelName) {
+      await ch.delete();
+      logger.info(`Deleted log channel "${ch.name}" for guild ${guild.id}.`);
+    }
+  }
+}
+
+/**
  * Enables logging for a guild: creates the logs channel and persists settings.
  *
  * @param {Guild} guild - The guild to enable logging for.
@@ -192,14 +208,32 @@ export async function enableLogging(guild, categoryMap) {
 }
 
 /**
- * Disables logging for a guild. Does NOT delete the channel — only
- * marks the module as disabled in settings so log entries stop.
+ * Disables logging for a guild. Deletes the logs channel and marks the
+ * module as disabled in settings so no log entries are posted.
  *
  * @param {Guild} guild - The guild to disable logging for.
  */
 export async function disableLogging(guild) {
   try {
-    await updateModuleSettings(guild.id, MODULE_KEY, { enabled: false });
+    const settings = await getModuleSettings(guild.id, MODULE_KEY);
+
+    // Delete the logs channel if it exists
+    if (settings.channelId) {
+      const existingChannel = guild.channels.cache.get(settings.channelId);
+      if (existingChannel) {
+        await existingChannel.delete();
+        logger.info(`Deleted log channel "${existingChannel.name}" for guild ${guild.id}.`);
+      }
+    }
+
+    // Clean up any orphaned channels with the same name
+    await deleteLogChannelFromGuild(guild, settings.channelId);
+
+    await updateModuleSettings(guild.id, MODULE_KEY, {
+      enabled: false,
+      channelId: null,
+    });
+
     logger.info(`Logging disabled for guild ${guild.id}.`);
     return { error: null };
   } catch (error) {
@@ -228,18 +262,8 @@ export async function reinstallLogging(guild, categoryMap) {
       }
     }
 
-    // Also scan for loose channels that match the log channel name
-    const category = categoryMap.get(LOGGING_CONFIG.categoryName);
-    if (category) {
-      for (const [, ch] of guild.channels.cache) {
-        if (ch.name === LOGGING_CONFIG.channelName && ch.parentId === category.id) {
-          if (ch.id !== settings.channelId) {
-            await ch.delete();
-            logger.info(`Deleted orphaned log channel "${ch.name}" for guild ${guild.id}.`);
-          }
-        }
-      }
-    }
+    // Clean up any orphaned channels with the same name
+    await deleteLogChannelFromGuild(guild, settings.channelId);
 
     // Now create a fresh one
     return enableLogging(guild, categoryMap);
