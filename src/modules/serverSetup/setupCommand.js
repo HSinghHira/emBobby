@@ -8,26 +8,27 @@ export const setupCommand = defineCommand({
     .setName('setup')
     .setDescription('Mass-create or delete server roles and channels from configuration.')
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
-    .addBooleanOption((option) =>
+    .addStringOption((option) =>
       option
-        .setName('delete_channels')
-        .setDescription('Delete every channel in the server.')
+        .setName('channels')
+        .setDescription('Create, delete, or reinstall channels.')
         .setRequired(false)
+        .addChoices(
+          { name: 'Install', value: 'install' },
+          { name: 'Uninstall', value: 'uninstall' },
+          { name: 'Reinstall', value: 'reinstall' },
+        )
     )
-    .addBooleanOption((option) =>
-      option.setName('delete_roles').setDescription('Delete every deletable role.').setRequired(false)
-    )
-    .addBooleanOption((option) =>
+    .addStringOption((option) =>
       option
-        .setName('create_roles')
-        .setDescription('Create roles from configuration.')
+        .setName('roles')
+        .setDescription('Create, delete, or reinstall roles.')
         .setRequired(false)
-    )
-    .addBooleanOption((option) =>
-      option
-        .setName('create_channels')
-        .setDescription('Create categories and channels from configuration.')
-        .setRequired(false)
+        .addChoices(
+          { name: 'Install', value: 'install' },
+          { name: 'Uninstall', value: 'uninstall' },
+          { name: 'Reinstall', value: 'reinstall' },
+        )
     ),
 
   category: 'admin',
@@ -35,16 +36,22 @@ export const setupCommand = defineCommand({
   cooldownSeconds: 30,
 
   async execute(interaction) {
+    const channelsAction = interaction.options.getString('channels');
+    const rolesAction = interaction.options.getString('roles');
+
+    // Map choice values to boolean flags for the internal service/embed APIs
     const options = {
-      deleteChannels: interaction.options.getBoolean('delete_channels') ?? false,
-      deleteRoles: interaction.options.getBoolean('delete_roles') ?? false,
-      createRoles: interaction.options.getBoolean('create_roles') ?? false,
-      createChannels: interaction.options.getBoolean('create_channels') ?? false,
+      deleteChannels: channelsAction === 'uninstall' || channelsAction === 'reinstall',
+      deleteRoles: rolesAction === 'uninstall' || rolesAction === 'reinstall',
+      createRoles: rolesAction === 'install' || rolesAction === 'reinstall',
+      createChannels: channelsAction === 'install' || channelsAction === 'reinstall',
     };
 
     const hasAnyAction = Object.values(options).some(Boolean);
     if (!hasAnyAction) {
-      throw new ValidationError('Set at least one option to true (e.g. `create_roles: true`).');
+      throw new ValidationError(
+        'Specify at least one action (e.g. `channels: Install` or `roles: Reinstall`).',
+      );
     }
 
     await interaction.deferReply();

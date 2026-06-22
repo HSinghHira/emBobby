@@ -3,3 +3,4 @@ node_modules/
 *.log
 bun.lock
 .history/
+.sample/
