@@ -41,12 +41,6 @@ export const CATEGORIES = [
         readOnly: true,
       },
       { name: '📜┋𝐑𝐮𝐥𝐞𝐬', type: ChannelType.GuildText, topic: 'Server rules', readOnly: true },
-      {
-        name: '🎭┋𝐒𝐞𝐥𝐟-𝐑𝐨𝐥𝐞𝐬',
-        type: ChannelType.GuildText,
-        topic: 'Pick your roles here',
-        readOnly: true,
-      },
     ],
   },
 
@@ -94,8 +88,8 @@ export const CATEGORIES = [
     name: '📂 Staff',
     visibility: 'staff',
     channels: [
-      { name: '📑┋𝐋𝐨𝐠𝐬', type: ChannelType.GuildText, topic: 'Moderation logs' },
       { name: '🗪┋𝐃𝐢𝐬𝐜𝐮𝐬𝐬𝐢𝐨𝐧', type: ChannelType.GuildForum, topic: 'Staff discussion' },
+      { name: '📑┋𝐋𝐨𝐠𝐬', type: ChannelType.GuildText, topic: 'Moderation logs' },
     ],
   },
 ];

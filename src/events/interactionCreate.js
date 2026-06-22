@@ -2,6 +2,7 @@ import { enforceCooldown } from '../core/cooldownManager.js';
 import { handleInteractionError } from '../core/errorHandler.js';
 import { PermissionError } from '../shared/errors.js';
 import { logger } from '../shared/logger.js';
+import { logCommandUsage } from '../modules/logging/index.js';
 
 export default {
   name: 'interactionCreate',
@@ -20,7 +21,7 @@ export default {
         const missing = interaction.memberPermissions?.missing(command.permissions) ?? [];
         if (missing.length > 0) {
           throw new PermissionError(
-            `You need the following permission(s) to use this command: ${missing.join(', ')}`
+            `You need the following permission(s) to use this command: ${missing.join(', ')}`,
           );
         }
       }
@@ -28,6 +29,11 @@ export default {
       enforceCooldown(command.data.name, interaction.user.id, command.cooldownSeconds);
 
       await command.execute(interaction);
+
+      // Log every command usage to the guild's log channel (fire-and-forget)
+      logCommandUsage(interaction).catch((err) =>
+        logger.error('Failed to log command usage:', err),
+      );
     } catch (error) {
       await handleInteractionError(interaction, error);
     }
