@@ -23,7 +23,6 @@ export const ROLES = [
   { name: '🛡️ Trial Mod', color: '#F39C12', hoist: true, mentionable: true },
 
   // ── Community ───────────────────────────────────────────────
-  { name: '👥 Verified Member', color: '#2ECC71', hoist: false, mentionable: false },
   { name: '💝 Booster', color: '#FF73FA', hoist: false, mentionable: false },
   { name: '💎 VIP', color: '#1ABC9C', hoist: false, mentionable: false },
   { name: '⭐ OG', color: '#F1C40F', hoist: false, mentionable: false },
@@ -36,13 +35,6 @@ export const ROLES = [
   // ── Verified Gender ─────────────────────────────────────────
   { name: '🚹 Verified Male', color: '#5DADE2', hoist: false, mentionable: false },
   { name: '🚺 Verified Female', color: '#F1948A', hoist: false, mentionable: false },
-
-  // ── Levels ──────────────────────────────────────────────────
-  { name: '🥇 Level 1', color: '#CD6133', hoist: false, mentionable: false },
-  { name: '🥈 Level 10', color: '#AAB7B8', hoist: false, mentionable: false },
-  { name: '🥉 Level 100', color: '#CD853F', hoist: false, mentionable: false },
-  { name: '🏅 Level 250', color: '#3498DB', hoist: false, mentionable: false },
-  { name: '🏆 Level 500', color: '#F1C40F', hoist: false, mentionable: false },
 
   // ── Interest Tags ─────────────────────────────────────────────
   { name: '🎮 Gamer', color: '#8E44AD', hoist: false, mentionable: false },
@@ -60,7 +52,6 @@ export const ROLES = [
   // ── System / Utility ───────────────────────────────────────────
   { name: '🤖 Bot', color: '#7F8C8D', hoist: false, mentionable: false },
   { name: '🔇 Muted', color: '#95A5A6', hoist: false, mentionable: false },
-  { name: '🆕 New Member', color: '#BDC3C7', hoist: false, mentionable: false },
 ];
 
 /**
