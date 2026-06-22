@@ -1,6 +1,6 @@
 import { ChannelType, PermissionFlagsBits } from 'discord.js';
 import { ROLES } from '../config/roles.js';
-import { CATEGORIES, VERIFY_CHANNEL_NAME } from '../config/channels.js';
+import { CATEGORIES } from '../config/channels.js';
 import {
   findRole,
   findCategory,
@@ -218,34 +218,6 @@ export async function createChannels(guild, categoryMap) {
         errors += 1;
         logger.error(`Failed to create channel "${channelDef.name}":`, error);
       }
-    }
-  }
-
-  // Standalone Verify channel — lives outside any category.
-  if (VERIFY_CHANNEL_NAME) {
-    try {
-      const overwrites = buildVerifyPermissions(guild);
-
-      const { created: wasCreated } = await createIfMissing({
-        find: () => findChannel(guild, VERIFY_CHANNEL_NAME, null),
-        create: () =>
-          guild.channels.create({
-            name: VERIFY_CHANNEL_NAME,
-            type: ChannelType.GuildText,
-            permissionOverwrites: overwrites,
-          }),
-      });
-
-      if (wasCreated) {
-        created += 1;
-        logger.success(`Created channel "${VERIFY_CHANNEL_NAME}".`);
-      } else {
-        skipped += 1;
-        logger.info(`Skipped channel "${VERIFY_CHANNEL_NAME}" (already exists).`);
-      }
-    } catch (error) {
-      errors += 1;
-      logger.error(`Failed to create channel "${VERIFY_CHANNEL_NAME}":`, error);
     }
   }
 

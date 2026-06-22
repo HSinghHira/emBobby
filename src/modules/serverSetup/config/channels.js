@@ -47,12 +47,6 @@ export const CATEGORIES = [
         topic: 'Pick your roles here',
         readOnly: true,
       },
-      {
-        name: '🏆┋𝐋𝐞𝐯𝐞𝐥𝐬',
-        type: ChannelType.GuildText,
-        topic: 'Levelling leaderboard',
-        readOnly: true,
-      },
     ],
   },
 
@@ -84,27 +78,11 @@ export const CATEGORIES = [
     ],
   },
 
-  // ── Voice Channels ───────────────────────────────────────────
-  {
-    name: '📂 Voice Channels',
-    visibility: 'verified',
-    channels: [
-      { name: '⚙️┋𝐈𝐧𝐭𝐞𝐫𝐟𝐚𝐜𝐞', type: ChannelType.GuildText, readOnly: true },
-      { name: '🎙️┋𝐂𝐫𝐞𝐚𝐭𝐞 𝐕𝐂', type: ChannelType.GuildVoice },
-    ],
-  },
-
   // ── Extras ───────────────────────────────────────────────────
   {
     name: '📂 Extras',
     visibility: 'verified',
     channels: [
-      {
-        name: '🎟️┋𝐇𝐞𝐥𝐩-𝐃𝐞𝐬𝐤',
-        type: ChannelType.GuildText,
-        topic: 'Open a support ticket',
-        readOnly: true,
-      },
       { name: '🤖┋𝐁𝐨𝐭-𝐂𝐨𝐦𝐦𝐚𝐧𝐝𝐬', type: ChannelType.GuildText, topic: 'Use bot commands here' },
       { name: '💡┋𝐒𝐮𝐠𝐠𝐞𝐬𝐭𝐢𝐨𝐧𝐬', type: ChannelType.GuildForum, topic: 'Suggest improvements' },
       { name: '👀┋𝐂𝐫𝐞𝐞𝐩-𝐂𝐨𝐧𝐭𝐫𝐨𝐥', type: ChannelType.GuildForum, topic: 'Watch list' },
@@ -127,4 +105,3 @@ export const CATEGORIES = [
  * @everyone, visible to New Member (so they can verify) and staff.
  * Created/looked-up by createChannels() after the categorized channels.
  */
-export const VERIFY_CHANNEL_NAME = '❓│𝐕𝐞𝐫𝐢𝐟𝐲';
