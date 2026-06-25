@@ -37,7 +37,7 @@ const USER_INFO_ENDPOINT = 'https://discord.com/api/v10/users/@me';
  */
 export function buildOAuthUrl(guildId) {
   const clientId = env.clientId;
-  const redirectUri = process.env.DISCORD_OAUTH2_REDIRECT || 'http://localhost:3000/auth/discord/callback';
+  const redirectUri = process.env.DISCORD_OAUTH2_REDIRECT || 'http://localhost:3000/auth/callback';
 
   const url = new URL('https://discord.com/api/v10/oauth2/authorize');
   url.searchParams.set('client_id', clientId);
@@ -58,7 +58,7 @@ export function buildOAuthUrl(guildId) {
 export async function exchangeCode(code) {
   const clientId = env.clientId;
   const clientSecret = process.env.DISCORD_CLIENT_SECRET;
-  const redirectUri = process.env.DISCORD_OAUTH2_REDIRECT || 'http://localhost:3000/auth/discord/callback';
+  const redirectUri = process.env.DISCORD_OAUTH2_REDIRECT || 'http://localhost:3000/auth/callback';
 
   if (!clientSecret) {
     logger.error('DISCORD_CLIENT_SECRET is not set. OAuth2 token exchange cannot proceed.');
