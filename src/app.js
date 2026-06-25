@@ -4,6 +4,7 @@ import { runMigrations } from './services/migrations.js';
 import { createClient } from './core/client.js';
 import { loadCommands } from './core/commandLoader.js';
 import { loadEvents } from './core/eventLoader.js';
+import { loadModules } from './core/moduleLoader.js';
 import { registerCommands } from './core/registerCommands.js';
 import { registerProcessErrorHandlers } from './core/errorHandler.js';
 import { logger } from './shared/logger.js';
@@ -22,8 +23,15 @@ async function start() {
 
   client = createClient();
 
+  // Load global commands and events (non-module-specific)
   await loadCommands(client);
   await loadEvents(client);
+
+  // Dynamically discover and register all modules from src/modules/
+  // Each module contributes its own commands, events, and lifecycle hooks.
+  // Adding a new folder under src/modules/ requires zero changes here.
+  await loadModules(client);
+
   await registerCommands(client);
 
   await client.login(env.discordToken);
