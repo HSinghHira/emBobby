@@ -7,6 +7,7 @@ import { loadEvents } from './core/eventLoader.js';
 import { loadModules } from './core/moduleLoader.js';
 import { registerCommands } from './core/registerCommands.js';
 import { registerProcessErrorHandlers } from './core/errorHandler.js';
+import { startOAuthServer } from './services/oauthServer.js';
 import { logger } from './shared/logger.js';
 
 let client;
@@ -35,6 +36,11 @@ async function start() {
   await registerCommands(client);
 
   await client.login(env.discordToken);
+
+  // Start the OAuth2 HTTP callback server so Discord can redirect
+  // users back after they authorize via the verification button.
+  // The server listens on process.env.PORT (Railway default) or 3000.
+  startOAuthServer(client);
 }
 
 /**

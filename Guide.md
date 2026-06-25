@@ -403,6 +403,8 @@ To use the verification module, you need to configure OAuth2 in the Discord Deve
    - **For any other host:** `https://your-domain.com/auth/callback`
 4. Click **Save**
 
+> **⚠️ Important:** The redirect URI in your `.env` file must match **exactly** what you entered in the Discord Developer Portal — including the protocol (`http://` vs `https://`), domain, port, and path. Even a trailing slash mismatch will cause an "Invalid OAuth2 redirect uri" error.
+
 ### Step 3: Set Environment Variables
 
 Add these to your `.env` file:
@@ -412,22 +414,41 @@ DISCORD_CLIENT_SECRET=your_client_secret_here
 DISCORD_OAUTH2_REDIRECT=https://embobby-production.up.railway.app/auth/callback
 ```
 
-> **⚠️ Important:** The redirect URI in your `.env` file must match **exactly** what you entered in the Discord Developer Portal — including the protocol (`http://` vs `https://`), domain, port, and path. Even a trailing slash mismatch will cause an "Invalid OAuth2 redirect uri" error.
+### Step 4: Deploy
 
-### Step 4: Verify the Setup
+The bot now includes a built-in HTTP server (Express) that handles the OAuth2 callback. When you deploy:
+
+1. **Railway** automatically sets the `PORT` environment variable and routes traffic to it
+2. The bot starts the HTTP server on that port after logging in to Discord
+3. The `/auth/callback` endpoint exchanges the OAuth2 code, swaps roles, and saves tokens
+
+**To deploy the latest changes:**
+
+```bash
+git add .
+git commit -m "Add OAuth2 callback HTTP server + verification/backup modules"
+git push
+```
+
+Railway will automatically rebuild and redeploy.
+
+### Step 5: Verify the Setup
 
 1. Run `/setup verification:Install` on your server
 2. A new member should join and automatically get the `🆕 New Member` role
 3. They can click the "Verify with Discord" button in the `❓│𝐕𝐞𝐫𝐢𝐟𝐲` channel
 4. They will be redirected to Discord's authorization page
-5. After authorizing, they should receive the `👌 Verified Member` role
+5. After authorizing, Discord redirects to `https://embobby-production.up.railway.app/auth/callback`
+6. The bot processes the callback, swaps roles, and shows a success page
+7. The user now has the `👌 Verified Member` role
 
 ### Troubleshooting
 
 | Error | Cause | Fix |
 |---|---|---|
-| `Invalid OAuth2 redirect uri` | The redirect URI in `.env` doesn't match the Discord Developer Portal | Check both match exactly (protocol, domain, port, path) |
-| `DISCORD_CLIENT_SECRET is not set` | Missing environment variable | Add `DISCORD_CLIENT_SECRET` to your `.env` file |
+| `Invalid OAuth2 redirect uri` | The redirect URI in `.env` doesn't match the Discord Developer Portal | Check both match exactly (protocol, domain, port, path). No trailing slash. |
+| `Application failed to respond` at `/auth/callback` | The HTTP server isn't running or the route isn't deployed yet | Push the latest code with the Express server to Railway |
+| `DISCORD_CLIENT_SECRET is not set` | Missing environment variable | Add `DISCORD_CLIENT_SECRET` to your Railway environment variables |
 | `Verification is not enabled` | Module not installed | Run `/setup verification:Install` |
 | `Cannot enable backup: the Verification module must be installed first` | Dependency guard | Run `/setup verification:Install` first, then `/setup backup:Enable` |
 
