@@ -1,6 +1,12 @@
 import 'dotenv/config';
 
-const required = ['DISCORD_TOKEN', 'DISCORD_CLIENT_ID', 'DATABASE_URL'];
+const required = [
+  'DISCORD_TOKEN',
+  'DISCORD_CLIENT_ID',
+  'DATABASE_URL',
+  'DISCORD_CLIENT_SECRET',
+  'DISCORD_OAUTH2_REDIRECT',
+];
 
 for (const key of required) {
   if (!process.env[key]) {
@@ -19,7 +25,10 @@ export const env = {
 
   discordToken: process.env.DISCORD_TOKEN,
   clientId: process.env.DISCORD_CLIENT_ID,
+  clientSecret: process.env.DISCORD_CLIENT_SECRET,
   guildId: process.env.DISCORD_GUILD_ID || null,
 
   databaseUrl: process.env.DATABASE_URL,
+
+  oauthRedirectUri: process.env.DISCORD_OAUTH2_REDIRECT,
 };
