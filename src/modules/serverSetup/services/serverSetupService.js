@@ -282,3 +282,80 @@ export async function setupServer(guild, options) {
 
   return summary;
 }
+
+/**
+ * Re-applies permission overwrites to all existing categories and channels
+ * without deleting or recreating anything. Use this after a role name
+ * change or permissions config fix to sync live Discord channels.
+ *
+ * Walks every category defined in config/channels.js, finds it in the
+ * guild by name, patches its overwrites, then does the same for each
+ * child channel. Also patches the standalone Verify channel.
+ */
+export async function syncPermissions(guild) {
+  await guild.channels.fetch();
+
+  let synced = 0;
+  let skipped = 0;
+  let errors = 0;
+
+  for (const categoryDef of CATEGORIES) {
+    const category = findCategory(guild, categoryDef.name);
+    if (!category) {
+      logger.warn(`syncPermissions: category "${categoryDef.name}" not found — skipping.`);
+      skipped += 1;
+      continue;
+    }
+
+    try {
+      const categoryOverwrites = buildVisibilityPermissions(guild, categoryDef.visibility);
+      await category.permissionOverwrites.set(categoryOverwrites, 'syncPermissions: re-applying config overwrites');
+      synced += 1;
+      logger.info(`Synced permissions for category "${category.name}".`);
+    } catch (error) {
+      errors += 1;
+      logger.error(`Failed to sync category "${categoryDef.name}":`, error);
+    }
+
+    for (const channelDef of categoryDef.channels) {
+      const channel = findChannel(guild, channelDef.name, category.id);
+      if (!channel) {
+        logger.warn(`syncPermissions: channel "${channelDef.name}" not found — skipping.`);
+        skipped += 1;
+        continue;
+      }
+
+      try {
+        const channelOverwrites = resolveChannelPermissions(guild, {
+          visibility: categoryDef.visibility,
+          permissionKey: channelDef.permissionKey,
+          readOnly: channelDef.readOnly,
+        });
+        await channel.permissionOverwrites.set(channelOverwrites, 'syncPermissions: re-applying config overwrites');
+        synced += 1;
+        logger.info(`Synced permissions for channel "${channel.name}".`);
+      } catch (error) {
+        errors += 1;
+        logger.error(`Failed to sync channel "${channelDef.name}":`, error);
+      }
+    }
+  }
+
+  // Patch the standalone Verify channel
+  const { VERIFICATION_CONFIG } = await import('../../verification/config/verificationConfig.js');
+  const verifyChannel = findChannel(guild, VERIFICATION_CONFIG.channelName);
+  if (verifyChannel) {
+    try {
+      const verifyOverwrites = buildVerifyPermissions(guild);
+      await verifyChannel.permissionOverwrites.set(verifyOverwrites, 'syncPermissions: re-applying verify overwrites');
+      synced += 1;
+      logger.info(`Synced permissions for verify channel "${verifyChannel.name}".`);
+    } catch (error) {
+      errors += 1;
+      logger.error(`Failed to sync verify channel:`, error);
+    }
+  }
+
+  logger.info(`syncPermissions finished — synced: ${synced}, skipped: ${skipped}, errors: ${errors}.`);
+  return { synced, skipped, errors };
+}
