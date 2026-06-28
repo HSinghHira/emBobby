@@ -130,7 +130,10 @@ export async function createCategories(guild) {
 
   for (const categoryDef of CATEGORIES) {
     try {
-      const overwrites = buildVisibilityPermissions(guild, categoryDef.visibility);
+      const overwrites = resolveChannelPermissions(guild, {
+        visibility: categoryDef.visibility,
+        permissionKey: categoryDef.permissionKey,
+      });
 
       const { item: category, created: wasCreated } = await createIfMissing({
         find: () => findCategory(guild, categoryDef.name),
@@ -192,9 +195,11 @@ export async function createChannels(guild, categoryMap) {
           );
         }
 
+        // Channels inherit the category's visibility/permissionKey
+        // unless they have their own override.
         const overwrites = resolveChannelPermissions(guild, {
-          visibility: categoryDef.visibility,
-          permissionKey: channelDef.permissionKey,
+          visibility: channelDef.visibility ?? categoryDef.visibility,
+          permissionKey: channelDef.permissionKey ?? categoryDef.permissionKey,
           readOnly: channelDef.readOnly,
         });
 
@@ -317,7 +322,10 @@ export async function syncPermissions(guild) {
     }
 
     try {
-      const categoryOverwrites = buildVisibilityPermissions(guild, categoryDef.visibility);
+      const categoryOverwrites = resolveChannelPermissions(guild, {
+        visibility: categoryDef.visibility,
+        permissionKey: categoryDef.permissionKey,
+      });
       await category.permissionOverwrites.set(categoryOverwrites, 'syncPermissions: re-applying config overwrites');
       synced += 1;
       logger.info(`Synced permissions for category "${category.name}".`);
@@ -336,8 +344,8 @@ export async function syncPermissions(guild) {
 
       try {
         const channelOverwrites = resolveChannelPermissions(guild, {
-          visibility: categoryDef.visibility,
-          permissionKey: channelDef.permissionKey,
+          visibility: channelDef.visibility ?? categoryDef.visibility,
+          permissionKey: channelDef.permissionKey ?? categoryDef.permissionKey,
           readOnly: channelDef.readOnly,
         });
         await channel.permissionOverwrites.set(channelOverwrites, 'syncPermissions: re-applying config overwrites');

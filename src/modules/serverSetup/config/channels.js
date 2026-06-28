@@ -9,11 +9,16 @@ import { ChannelType } from 'discord.js';
  * on a parallel naming scheme.
  *
  * Category fields:
- *   name       - category name
- *   visibility - 'public' (everyone can view) | 'verified' (Verified
- *                Member + staff) | 'staff' (staff only). Channels inherit
- *                this unless they set their own `permissionKey` override.
- *   channels   - array of channel definitions (below), created in order
+ *   name          - category name
+ *   visibility    - 'public' (everyone can view) | 'verified' (Verified
+ *                   Member + staff) | 'staff' (staff only). Channels inherit
+ *                   this unless they or the category set a `permissionKey`.
+ *   permissionKey - optional. One of 'he-only' | 'she-only' | 'they-only'
+ *                   | 'verified-only' (see config/permissions.js). When set
+ *                   on a category, all children inherit it as the default
+ *                   unless they set their own override. Overrides the
+ *                   category's visibility entirely.
+ *   channels      - array of channel definitions (below), created in order
  *
  * Channel fields:
  *   name          - channel name
@@ -21,9 +26,8 @@ import { ChannelType } from 'discord.js';
  *                    | GuildVoice | GuildStageVoice
  *   topic         - optional channel topic
  *   permissionKey - optional. One of 'he-only' | 'she-only' | 'they-only'
- *                    (see config/permissions.js). Overrides the category's
- *                    visibility entirely — the channel becomes visible only
- *                    to that pronoun role, regardless of category tier.
+ *                   | 'verified-only' (see config/permissions.js). Overrides
+ *                   the category's visibility/permissionKey entirely.
  *   readOnly      - optional boolean. Whoever can view the channel keeps
  *                    view access but loses SendMessages / thread creation,
  *                    except staff, who always retain write access.

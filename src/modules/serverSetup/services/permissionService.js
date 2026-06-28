@@ -57,9 +57,13 @@ export function buildVisibilityPermissions(guild, visibility) {
 }
 
 /**
- * Pronoun-only channel: hidden from @everyone, visible only to the role
- * mapped from `permissionKey` in config/permissions.js. Overrides the
- * category's visibility tier entirely (staff are NOT auto-added here).
+ * Role-restricted permissions: hidden from @everyone, visible only to the
+ * role mapped from `permissionKey` in config/permissions.js. Overrides the
+ * category's visibility tier entirely.
+ *
+ * For gender-specific keys ('he-only', 'she-only', 'they-only') staff are
+ * NOT auto-added (these are private pronoun spaces). For 'verified-only'
+ * staff ARE auto-added so they can moderate.
  */
 export function buildGenderPermissions(guild, permissionKey) {
   const everyoneId = guild.roles.everyone.id;
@@ -69,6 +73,14 @@ export function buildGenderPermissions(guild, permissionKey) {
   const id = roleName ? resolveRoleId(guild, roleName) : undefined;
   if (id) {
     overwrites.push({ id, type: OverwriteType.Role, allow: [PermissionFlagsBits.ViewChannel] });
+  }
+
+  // verified-only categories/channels should also be visible to staff
+  if (permissionKey === 'verified-only') {
+    for (const name of STAFF_ROLE_NAMES) {
+      const staffId = resolveRoleId(guild, name);
+      if (staffId) overwrites.push({ id: staffId, type: OverwriteType.Role, allow: [PermissionFlagsBits.ViewChannel] });
+    }
   }
 
   return overwrites;
@@ -123,20 +135,21 @@ function applyReadOnly(guild, overwrites) {
 }
 
 /**
- * Main entry point used by createCategories()/createChannels(). Resolves
- * a category's visibility and a channel's optional permissionKey/readOnly
- * into a single overwrites array ready for guild.channels.create().
+ * Resolves a category or channel's config into permission overwrites.
+ * Categories can also have a permissionKey (same as channels).
  *
  * Resolution order:
- *   1. permissionKey set and recognized (gender-only) -> pronoun-only overwrites
- *   2. otherwise -> visibility-tier overwrites
+ *   1. permissionKey set and recognized -> role-restricted overwrites
+ *   2. visibility set -> visibility-tier overwrites
  *   3. readOnly -> write access stripped from everyone except staff
  */
 export function resolveChannelPermissions(guild, { visibility, permissionKey, readOnly } = {}) {
   const overwrites =
     permissionKey && GENDER_ROLES[permissionKey]
       ? buildGenderPermissions(guild, permissionKey)
-      : buildVisibilityPermissions(guild, visibility);
+      : visibility
+        ? buildVisibilityPermissions(guild, visibility)
+        : [];
 
   return readOnly ? applyReadOnly(guild, overwrites) : overwrites;
 }
