@@ -148,8 +148,11 @@ export async function createCategories(guild) {
         created += 1;
         logger.success(`Created category "${categoryDef.name}".`);
       } else {
+        // Category already exists — update its permission overwrites to
+        // match the current config (e.g. newly added roles like Verified Member).
         skipped += 1;
-        logger.info(`Skipped category "${categoryDef.name}" (already exists).`);
+        await category.permissionOverwrites.set(overwrites, 'createCategories: updating existing category permissions');
+        logger.info(`Updated permissions for existing category "${categoryDef.name}".`);
       }
     } catch (error) {
       errors += 1;
@@ -212,7 +215,13 @@ export async function createChannels(guild, categoryMap) {
           logger.success(`Created channel "${channelDef.name}".`);
         } else {
           skipped += 1;
-          logger.info(`Skipped channel "${channelDef.name}" (already exists).`);
+          // Channel already exists — update its permission overwrites to
+          // match the current config (e.g. newly added roles like Verified Member).
+          const channel = findChannel(guild, channelDef.name, category.id);
+          if (channel) {
+            await channel.permissionOverwrites.set(overwrites, 'createChannels: updating existing channel permissions');
+            logger.info(`Updated permissions for existing channel "${channelDef.name}".`);
+          }
         }
       } catch (error) {
         errors += 1;
