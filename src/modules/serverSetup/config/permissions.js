@@ -12,7 +12,7 @@
  * 'public' needs no entry either — @everyone is simply allowed to view.
  */
 export const VISIBILITY_ROLES = {
-  verified: ['👥 Verified Member'],
+  verified: ['👌 Verified Member'],
 };
 
 /**
