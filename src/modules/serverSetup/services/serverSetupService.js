@@ -14,18 +14,35 @@ import { logger } from '../../../shared/logger.js';
 import { ValidationError } from '../../../shared/errors.js';
 
 /**
- * Deletes every channel in the guild (categories, text, announcement,
- * voice, forum, stage). Each deletion is independent — one failure does
+ * Deletes only the leaf channels (non-category) defined in CATEGORIES
+ * config. Categories themselves are left intact so that child channels
+ * belonging to other modules (e.g. the Logs channel inside 📂 Staff)
+ * are not cascade-deleted by Discord. Standalone channels such as
+ * ❓│𝐕𝐞𝐫𝐢𝐟𝐲 are also preserved since their names are not in the
+ * CATEGORIES config. Each deletion is independent — one failure does
  * not stop the rest.
  */
 export async function deleteChannels(guild) {
   await guild.channels.fetch();
   const channels = [...guild.channels.cache.values()];
 
+  // Build a set of only the leaf (non-category) channel names from the
+  // CATEGORIES config.  We deliberately skip category names so that
+  // deleting the parent doesn't cascade-delete external children like
+  // the Logs channel which lives under 📂 Staff.
+  const namesToDelete = new Set();
+  for (const categoryDef of CATEGORIES) {
+    for (const channelDef of categoryDef.channels) {
+      namesToDelete.add(channelDef.name);
+    }
+  }
+
   let deleted = 0;
   let errors = 0;
 
   for (const channel of channels) {
+    if (!namesToDelete.has(channel.name)) continue;
+
     const success = await safeDeleteChannel(channel);
     if (success) {
       deleted += 1;
