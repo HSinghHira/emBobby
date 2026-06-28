@@ -32,7 +32,7 @@ export const CATEGORIES = [
   // ── Information ──────────────────────────────────────────────
   {
     name: '📂 Information',
-    visibility: 'verified',
+    permissionKey: 'verified-only',
     channels: [
       {
         name: '📢┋𝐀𝐧𝐧𝐨𝐮𝐧𝐜𝐞𝐦𝐞𝐧𝐭𝐬',
@@ -47,7 +47,7 @@ export const CATEGORIES = [
   // ── Community ────────────────────────────────────────────────
   {
     name: '📂 Community',
-    visibility: 'verified',
+    permissionKey: 'verified-only',
     channels: [
       { name: '💬┋𝐂𝐡𝐚𝐭-𝐓𝐢𝐦𝐞', type: ChannelType.GuildText, topic: 'General chat' },
       { name: '📸┋𝐌𝐞𝐝𝐢𝐚', type: ChannelType.GuildText, topic: 'Share images & videos' },
@@ -75,7 +75,7 @@ export const CATEGORIES = [
   // ── Extras ───────────────────────────────────────────────────
   {
     name: '📂 Extras',
-    visibility: 'verified',
+    permissionKey: 'verified-only',
     channels: [
       { name: '🤖┋𝐁𝐨𝐭-𝐂𝐨𝐦𝐦𝐚𝐧𝐝𝐬', type: ChannelType.GuildText, topic: 'Use bot commands here' },
       { name: '💡┋𝐒𝐮𝐠𝐠𝐞𝐬𝐭𝐢𝐨𝐧𝐬', type: ChannelType.GuildForum, topic: 'Suggest improvements' },

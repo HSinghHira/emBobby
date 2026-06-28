@@ -16,7 +16,7 @@ export const VISIBILITY_ROLES = {
 };
 
 /**
- * Pronoun-only channels: a channel's `permissionKey` selects one of these
+ * Role-restricted channels: a channel's `permissionKey` selects one of these
  * and becomes visible ONLY to that role (overriding the category's
  * visibility tier entirely).
  */
@@ -24,6 +24,7 @@ export const GENDER_ROLES = {
   'he-only': '♂️ 𝐇𝐄┃𝐇𝐈𝐌',
   'she-only': '♀️ 𝐒𝐇𝐄┃𝐇𝐄𝐑',
   'they-only': '🌈 𝐓𝐇𝐄𝐘┃𝐓𝐇𝐄𝐌',
+  'verified-only': '👌 Verified Member',
 };
 
 /** Role that can see (but not yet write in) the standalone Verify channel. */
