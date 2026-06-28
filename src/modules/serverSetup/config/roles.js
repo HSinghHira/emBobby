@@ -27,6 +27,9 @@ export const ROLES = [
   { name: '💎 VIP', color: '#1ABC9C', hoist: false, mentionable: false },
   { name: '⭐ OG', color: '#F1C40F', hoist: false, mentionable: false },
 
+  // ── Verified Member ────────────────────────────────────────────
+  { name: '👌 Verified Member', color: '#2ECC71', hoist: false, mentionable: false },
+
   // ── Pronouns ────────────────────────────────────────────────
   { name: '♂️ 𝐇𝐄┃𝐇𝐈𝐌', color: '#3498DB', hoist: false, mentionable: false },
   { name: '♀️ 𝐒𝐇𝐄┃𝐇𝐄𝐑', color: '#E91E63', hoist: false, mentionable: false },
@@ -50,6 +53,7 @@ export const ROLES = [
   { name: '🔔 Voice Ping', color: '#F39C12', hoist: false, mentionable: true },
 
   // ── System / Utility ───────────────────────────────────────────
+  { name: '🆕 New Member', color: '#95A5A6', hoist: false, mentionable: false },
   { name: '🤖 Bot', color: '#7F8C8D', hoist: false, mentionable: false },
   { name: '🔇 Muted', color: '#95A5A6', hoist: false, mentionable: false },
 ];
